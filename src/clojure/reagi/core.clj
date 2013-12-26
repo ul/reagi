@@ -53,6 +53,12 @@
   (unsub [stream channel]
     "Tell the stream to stop sending events the the supplied channel."))
 
+(defprotocol ^:no-doc Pluggable
+  (plug [stream source]
+    "Tell the stream to receive events from existing source stream.")
+  (unplug [stream source]
+    "Tell the stream to stop receiving events from source."))
+
 (defn- observable [channel]
   (let [observers (atom #{})]
     (go-loop []
@@ -121,6 +127,9 @@
       (go (>! c hd)))    
     (sub ob c))
   (unsub [_ c] (unsub ob c))
+  Pluggable
+  (plug [_ s] (sub s ch))
+  (unplug [_ s] (unsub s ch))
   Dependencies
   (deps* [_] deps)
   Object
